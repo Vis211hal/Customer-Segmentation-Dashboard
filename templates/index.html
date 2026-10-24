@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CustomerIQ | Customer Segmentation</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --page-background: #f4f2ee; /* Change this to customize the page background */
+      --surface: #ffffff;
+      --text: #182230;
+      --muted: #64748b;
+      --primary: #5b4bdb;
+      --border: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--page-background);
+      color: var(--text);
+    }
+
+    .layout { display: flex; min-height: 100vh; }
+
+    aside {
+      width: 235px;
+      flex-shrink: 0;
+      padding: 28px 18px;
+      color: #fff;
+      background: #171c32;
+    }
+
+    .brand {
+      margin: 0 0 42px 8px;
+      font-size: 23px;
+      font-weight: 800;
+    }
+
+    .brand span { color: #a99eff; }
+
+    .nav-label {
+      margin: 24px 10px 12px;
+      color: #9099b5;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+    }
+
+    .nav-item {
+      display: block;
+      margin: 5px 0;
+      padding: 13px 12px;
+      border-radius: 9px;
+      color: #cbd1e4;
+      font-size: 14px;
+      text-decoration: none;
+    }
+
+    .nav-item:hover, .nav-item.active {
+      color: #fff;
+      background: #37315f;
+    }
+
+    .side-note {
+      margin-top: 65px;
+      padding: 15px;
+      border: 1px solid #343a55;
+      border-radius: 12px;
+      color: #bdc4d9;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    main {
+      flex: 1;
+      min-width: 0;
+      padding: 30px;
+    }
+
+    header, .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+
+    header { margin-bottom: 28px; }
+
+    h1 { margin: 0 0 7px; font-size: 27px; }
+    h2 { margin: 0; font-size: 17px; }
+    p { color: var(--muted); }
+
+    .subtitle { margin: 0; font-size: 14px; }
+
+    .status {
+      padding: 9px 13px;
+      border-radius: 30px;
+      color: #087c59;
+      background: #e2f7ef;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 17px;
+      margin-bottom: 22px;
+    }
+
+    .card, .panel {
+      min-width: 0;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      background: var(--surface);
+      box-shadow: 0 4px 18px #1e293b05;
+    }
+
+    .card { padding: 21px; }
+
+    .metric-label, .metric-foot {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .metric {
+      margin-top: 12px;
+      font-size: 28px;
+      font-weight: 750;
+    }
+
+    .metric-foot { margin-top: 8px; font-size: 12px; }
+
+    .insight-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 0 0 22px;
+    }
+
+    .insight {
+      padding: 14px 17px;
+      border: 1px solid #dbe3ff;
+      border-radius: 12px;
+      color: #354269;
+      background: #eef2ff;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .insight strong {
+      display: block;
+      color: #28365f;
+      font-size: 16px;
+    }
+
+    .panels {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .panel { padding: 23px; }
+
+    .panel-head { margin-bottom: 20px; }
+
+    .tag, .cluster-pill {
+      padding: 6px 9px;
+      border-radius: 7px;
+      color: var(--primary);
+      background: #eef2ff;
+      font-size: 11px;
+    }
+
+    .chart-wrap { position: relative; height: 270px; }
+
+    .data-note, .chart-note {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .segment-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 13px;
+    }
+
+    .segment-card {
+      padding: 19px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: #fff;
+    }
+
+    .segment-card h3 { margin: 0 0 14px; font-size: 14px; }
+    .segment-count { font-size: 25px; font-weight: 750; }
+
+    .segment-share {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .segment-card p { font-size: 12px; line-height: 1.6; }
+
+    .dot {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      margin-right: 7px;
+      border-radius: 50%;
+    }
+
+    .dot-purple { background: #6254d8; }
+    .dot-green { background: #138a68; }
+
+    .segment-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .segment-metric {
+      padding: 10px;
+      border: 1px solid #edf0f5;
+      border-radius: 9px;
+      color: var(--muted);
+      background: #f5f7fb;
+      font-size: 11px;
+    }
+
+    .segment-metric strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #dfe3ec;
+      border-radius: 9px;
+      outline: none;
+      background: #fff;
+      font: inherit;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px #5b4bdb20;
+    }
+
+    button {
+      margin-top: 19px;
+      padding: 13px 18px;
+      border: 0;
+      border-radius: 9px;
+      color: #fff;
+      background: var(--primary);
+      font-size: 14px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    button:hover { background: #4939c4; }
+
+    .result, .error {
+      margin-top: 18px;
+      padding: 15px;
+      border-radius: 12px;
+    }
+
+    .result {
+      border: 1px solid #d0f0e0;
+      background: #effaf5;
+    }
+
+    .result strong {
+      display: block;
+      margin: 7px 0;
+      color: #087c59;
+      font-size: 20px;
+    }
+
+    .error {
+      color: #a12626;
+      background: #fff0f0;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    th, td {
+      padding: 12px 8px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    th { color: var(--muted); }
+
+    footer {
+      padding: 24px 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    @media (max-width: 1100px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .panels { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 700px) {
+      aside { display: none; }
+      main { padding: 18px; }
+      header { align-items: flex-start; flex-direction: column; }
+      .grid { gap: 10px; }
+      .card { padding: 15px; }
+      .metric { font-size: 22px; }
+      .segment-list, .form-grid, .insight-strip { grid-template-columns: 1fr; }
+      .segment-metrics { grid-template-columns: 1fr; }
+      .panel { padding: 17px; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">Customer<span>IQ</span></div>
+    <div class="nav-label">WORKSPACE</div>
+    <a class="nav-item active" href="#overview">▦ &nbsp; Overview</a>
+    <a class="nav-item" href="#segments">◉ &nbsp; Segments</a>
+    <a class="nav-item" href="#predictions">⌕ &nbsp; Predictions</a>
+
+    <div class="nav-label">MACHINE LEARNING</div>
+    <a class="nav-item" href="#model">✦ &nbsp; K-Means Model</a>
+
+    <div class="side-note">
+      <strong>MODEL STATUS</strong><br>
+      K-Means clustering<br>
+      2 customer segments<br>
+      StandardScaler + log1p<br>
+      Training summary only
+    </div>
+  </aside>
+
+  <main id="overview">
+    <header>
+      <div>
+        <h1>Customer Analytics</h1>
+        <p class="subtitle">Explore the training profile and classify individual customers.</p>
+      </div>
+      <div class="status">● Model loaded</div>
+    </header>
+
+    <section class="grid">
+      <div class="card">
+        <div class="metric-label">Training Customers</div>
+        <div class="metric">{{ "{:,}".format(total_customers) }}</div>
+        <div class="metric-foot">Customers in training summary</div>
+      </div>
+      <div class="card">
+        <div class="metric-label">Customer Segments</div>
+        <div class="metric">2</div>
+        <div class="metric-foot">K-Means clustering</div>
+      </div>
+      <div class="card">
+        <div class="metric-label">Higher-Value Segment</div>
+        <div class="metric">{{ "{:,}".format(segments[0]["count"]) }}</div>
+        <div class="metric-foot">{{ "%.1f"|format(segment_share[0]) }}% of training customers</div>
+      </div>
+      <div class="card">
+        <div class="metric-label">Predictions This Session</div>
+        <div class="metric">{{ total_predictions }}</div>
+        <div class="metric-foot">Recent predictions in memory</div>
+      </div>
+    </section>
+
+    <section class="insight-strip">
+      <div class="insight">
+        <strong>{{ "%.1f"|format(segment_share[0]) }}% / {{ "%.1f"|format(segment_share[1]) }}%</strong>
+        Training mix: higher-value / lower-value
+      </div>
+      <div class="insight">
+        <strong>{{ "%.1f"|format(average_spend_gap) }}×</strong>
+        Higher-value customers’ average spend
+      </div>
+      <div class="insight">
+        <strong>{{ "%.1f"|format(segments[0]["avg_orders"] / segments[1]["avg_orders"]) }}×</strong>
+        Higher-value customers’ average invoices
+      </div>
+    </section>
+
+    <section class="panels">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Customer Distribution</h2>
+          <span class="tag">{{ "{:,}".format(total_customers) }} customers</span>
+        </div>
+        <div class="chart-wrap"><canvas id="distributionChart"></canvas></div>
+        <p class="data-note">Fixed training-summary data; predictions do not change these figures.</p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Segment Averages</h2>
+          <span class="tag">Training profile</span>
+        </div>
+        <div class="chart-wrap"><canvas id="spendingChart"></canvas></div>
+        <p class="chart-note">Logarithmic scale helps show metrics with different ranges.</p>
+      </div>
+    </section>
+
+    <section class="panel" id="segments" style="margin-bottom:22px">
+      <div class="panel-head">
+        <h2>Customer Segments</h2>
+        <span class="tag">Model interpretation</span>
+      </div>
+
+      <div class="segment-list">
+        {% for id, segment in segments.items() %}
+        <article class="segment-card">
+          <h3>
+            <span class="dot {{ 'dot-purple' if id == 0 else 'dot-green' }}"></span>
+            {{ segment["name"] }}
+          </h3>
+          <div class="segment-count">{{ "{:,}".format(segment["count"]) }}</div>
+          <div class="segment-share">{{ "%.1f"|format(segment_share[id]) }}% of training customers</div>
+          <p>{{ segment["description"] }}</p>
+
+          <div class="segment-metrics">
+            <div class="segment-metric">Avg. spend<strong>£{{ "{:,.2f}".format(segment["avg_spent"]) }}</strong></div>
+            <div class="segment-metric">Avg. invoices<strong>{{ "%.2f"|format(segment["avg_orders"]) }}</strong></div>
+            <div class="segment-metric">Avg. order value<strong>£{{ "{:,.2f}".format(segment["avg_order_value"]) }}</strong></div>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="panels" id="predictions">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Predict a Customer Segment</h2>
+          <span class="tag">Live prediction</span>
+        </div>
+        <p>Enter one customer’s totals using the same aggregation method as training.</p>
+        <p class="data-note">Invoice count must be greater than zero.</p>
+
+        <form action="/predict" method="POST">
+          <div class="form-grid">
+            <div>
+              <label for="total_spent">Total Spending (£)</label>
+              <input id="total_spent" type="number" name="total_spent" min="0" step="any" required
+                     value="{{ form_values.total_spent if form_values else '' }}">
+            </div>
+            <div>
+              <label for="total_quantity">Total Quantity</label>
+              <input id="total_quantity" type="number" name="total_quantity" min="0" step="any" required
+                     value="{{ form_values.total_quantity if form_values else '' }}">
+            </div>
+            <div>
+              <label for="total_transactions">Total Transactions</label>
+              <input id="total_transactions" type="number" name="total_transactions" min="1" step="1" required
+                     value="{{ form_values.total_transactions if form_values else '' }}">
+            </div>
+            <div>
+              <label for="average_order_value">Average Order Value (£)</label>
+              <input id="average_order_value" type="number" name="average_order_value" min="0" step="any" required
+                     value="{{ form_values.average_order_value if form_values else '' }}">
+            </div>
+          </div>
+          <button type="submit">✦ Predict Segment</button>
+        </form>
+
+        {% if prediction %}
+        <div class="result">
+          Prediction completed · Cluster {{ cluster }}
+          <strong>{{ prediction["name"] }}</strong>
+          {{ prediction["description"] }}
+        </div>
+        {% endif %}
+
+        {% if error %}<div class="error">{{ error }}</div>{% endif %}
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Recent Predictions</h2>
+          <span class="tag">Latest 10</span>
+        </div>
+
+        {% if history %}
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Spend</th><th>Quantity</th><th>Invoices</th><th>Avg. order</th><th>Segment</th></tr>
+            </thead>
+            <tbody>
+              {% for item in history %}
+              <tr>
+                <td>£{{ "{:,.2f}".format(item["spent"]) }}</td>
+                <td>{{ "{:,.2f}".format(item["quantity"]) }}</td>
+                <td>{{ item["transactions"] }}</td>
+                <td>£{{ "{:,.2f}".format(item["average_order_value"]) }}</td>
+                <td><span class="cluster-pill">{{ item["name"] }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p>No predictions yet. Use the form to classify a customer.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <footer>CustomerIQ · Built with Flask, Scikit-learn and K-Means</footer>
+  </main>
+</div>
+
+<script>
+  const segmentData = {{ segments | tojson }};
+  const names = Object.values(segmentData).map(s => s.name);
+  const counts = Object.values(segmentData).map(s => s.count);
+  const spend = Object.values(segmentData).map(s => s.avg_spent);
+  const invoices = Object.values(segmentData).map(s => s.avg_orders);
+  const orderValue = Object.values(segmentData).map(s => s.avg_order_value);
+
+  Chart.defaults.font.family = "'Segoe UI', Arial, sans-serif";
+  Chart.defaults.color = "#64748b";
+
+  new Chart(document.getElementById("distributionChart"), {
+    type: "doughnut",
+    data: {
+      labels: names,
+      datasets: [{
+        data: counts,
+        backgroundColor: ["#6254d8", "#138a68"],
+        borderColor: "#fff",
+        borderWidth: 3,
+        hoverOffset: 7
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "68%",
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: { usePointStyle: true, pointStyle: "circle", padding: 18 }
+        }
+      }
+    }
+  });
+
+  new Chart(document.getElementById("spendingChart"), {
+    type: "bar",
+    data: {
+      labels: names,
+      datasets: [
+        {
+          label: "Average spend (£)",
+          data: spend,
+          backgroundColor: ["#6254d8", "#138a68"],
+          borderRadius: 7
+        },
+        {
+          label: "Average invoices",
+          data: invoices,
+          backgroundColor: ["#a59bf2", "#76c8ae"],
+          borderRadius: 7
+        },
+        {
+          label: "Average order value (£)",
+          data: orderValue,
+          backgroundColor: ["#4436b5", "#087653"],
+          borderRadius: 7
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          type: "logarithmic",
+          grid: { color: "#e8edf5" },
+          ticks: {
+            callback: value => {
+              const n = Number(value);
+              if (n >= 1000) return `£${(n / 1000).toFixed(n % 1000 ? 1 : 0)}k`;
+              if (n >= 1) return `£${n}`;
+              return n;
+            }
+          }
+        },
+        x: { grid: { display: false } }
+      },
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: { usePointStyle: true, pointStyle: "circle", padding: 14 }
+        }
+      }
+    }
+  });
+</script>
+</body>
+</html>
